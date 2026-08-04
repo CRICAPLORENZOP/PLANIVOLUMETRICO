@@ -1,0 +1,58 @@
+name: Release PLANILORE
+
+# Pubblica una nuova release (con aggiornamento automatico) quando:
+# - crei un tag tipo v0.1.1 e lo fai push
+# - oppure avvii manualmente il workflow da Actions
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build e pubblica release
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: "PLANILORE2025 v__VERSION__"
+          releaseBody: |
+            Nuova versione di PLANILORE 2025.
+            Gli utenti con l'app già installata riceveranno la proposta di aggiornamento automatico all'avvio.
+          releaseDraft: false
+          prerelease: false
+          updaterJsonPreferNsis: true

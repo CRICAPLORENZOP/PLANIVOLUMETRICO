@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANILORE 2025 - Stampa PDF Tauri</title>
+    <style>
+        /* STILI PER STAMPA PDF - LAYOUT OTTIMIZZATO */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 10pt;
+            line-height: 1.3;
+            color: #000;
+            background: #fff;
+            padding: 20pt;
+        }
+
+        .print-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25pt;
+            padding: 15pt 0;
+            border-bottom: 2pt solid #000;
+        }
+
+        .print-title {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .print-date {
+            font-size: 10pt;
+            color: #000;
+        }
+
+        .section {
+            margin-bottom: 20pt;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            text-align: left;
+            margin-bottom: 8pt;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 6pt 0;
+            padding: 4pt 0;
+            border-bottom: 0.5pt solid #ccc;
+            font-size: 10pt;
+        }
+
+        .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .data-label {
+            font-weight: bold;
+            flex: 0 0 20%;
+            text-align: left;
+        }
+
+        .data-value {
+            flex: 0 0 50%;
+            text-align: center;
+        }
+
+        .data-result {
+            flex: 0 0 30%;
+            text-align: center;
+        }
+
+        .formula-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin: 6pt 0;
+            padding: 4pt 0;
+            border-bottom: 0.5pt solid #ccc;
+            font-size: 10pt;
+        }
+
+        .formula-left {
+            flex: 0 0 70%;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8pt;
+        }
+
+        .formula-part {
+            display: inline-flex;
+            align-items: center;
+            gap: 4pt;
+        }
+
+        .formula-part strong {
+            font-weight: bold;
+        }
+
+        .formula-op {
+            font-weight: bold;
+            padding: 0 2pt;
+        }
+
+        .verifica-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 6pt 0;
+            font-size: 10pt;
+        }
+
+        .verifica-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+            font-size: 8pt;
+            padding: 5pt 6pt;
+            border-bottom: 1pt solid #000;
+            text-align: center;
+        }
+
+        .verifica-table th:first-child,
+        .verifica-table td:first-child {
+            text-align: left;
+        }
+
+        .verifica-table td {
+            padding: 6pt 6pt;
+            border-bottom: 0.5pt solid #ccc;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .verifica-table .verifica-nome {
+            font-weight: bold;
+            font-size: 9pt;
+        }
+
+        .verifica-table .verifica-val {
+            font-size: 11pt;
+            font-weight: bold;
+        }
+
+        .verifica-table .verifica-stato {
+            font-size: 10pt;
+            font-weight: bold;
+            background: #e8e8e8;
+        }
+
+        .verifica-table .verifica-unit {
+            font-size: 8pt;
+            font-weight: normal;
+            margin-left: 2pt;
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: bold;
+            display: inline-block;
+            min-width: 120pt;
+            margin-right: 8pt;
+        }
+
+        .value {
+            display: inline-block;
+            padding: 2pt 6pt;
+            border: 0.5pt solid #000;
+            background: #fff;
+            min-width: 80pt;
+        }
+
+        .value.readonly {
+            background: #f8f8f8;
+            font-weight: bold;
+        }
+
+        .total {
+            font-size: 11pt;
+            font-weight: bold;
+            background: #e8e8e8;
+            padding: 6pt;
+            border: 1pt solid #000;
+            text-align: center;
+            margin: 8pt 0;
+        }
+
+        @page {
+            margin: 20mm;
+            size: A4 portrait;
+        }
+
+        @page {
+            @top-center {
+                content: "PLANILORE 2025 - Calcolo Planivolumetrico";
+                font-size: 9pt;
+                font-weight: bold;
+            }
+            @bottom-center {
+                content: "Pagina " counter(page);
+                font-size: 8pt;
+            }
+        }
+        
+        /* Stili per il pulsante stampa */
+        #print-pdf-btn:hover {
+            background: #0056b3 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
+        }
+        
+        #print-pdf-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+        
+        /* Nascondi il pulsante durante la stampa */
+        @media print {
+            #print-pdf-btn {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="print-header">
+        <div class="print-title">VERIFICA PLANIVOLUMETRICA</div>
+        <div class="print-date">Data di stampa: <span id="data-stampa"></span></div>
+    </div>
+    
+    <!-- PULSANTE STAMPA PDF -->
+    <button id="print-pdf-btn" onclick="window.print()" style="
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        z-index: 9999;
+        padding: 12px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    ">🖨️ Stampa PDF</button>
+
+    <!-- CONTENUTO PRINCIPALE -->
+    <div id="contenuto-stampa">
+        <!-- Il contenuto verrà inserito qui dinamicamente dalla funzione popolaStampaPDF() -->
+    </div>
+
+    <script>
+        // Imposta data corrente
+        document.getElementById('data-stampa').textContent = new Date().toLocaleDateString('it-IT');
+        
+        // Carica e popola i dati dal localStorage
+        function caricaDatiPDF() {
+            try {
+                console.log('Caricando dati dal localStorage...');
+                const datiJSON = localStorage.getItem('pdfData');
+                
+                if (!datiJSON) {
+                    console.log('Nessun dato trovato nel localStorage');
+                    mostraMessaggioNessunDato();
+                    return;
+                }
+                
+                const dati = JSON.parse(datiJSON);
+                console.log('Dati caricati:', dati);
+                
+                popolaContenuto(dati);
+                
+            } catch (error) {
+                console.error('Errore nel caricamento dati:', error);
+                mostraMessaggioErrore();
+            }
+        }
+        
+        function popolaContenuto(dati) {
+            const contenuto = document.getElementById('contenuto-stampa');
+            let htmlContent = '';
+            
+            console.log('Generando contenuto HTML...');
+            
+            // Sezione 1: Superficie Intervento
+            if (dati.sezione1_SuperficieIntervento && dati.sezione1_SuperficieIntervento.righe && dati.sezione1_SuperficieIntervento.righe.length > 0) {
+                console.log('Aggiungendo sezione 1...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE SUPERFICIE D\'INTERVENTO</div>';
+                
+                dati.sezione1_SuperficieIntervento.righe.forEach(riga => {
+                    htmlContent += '<div class="data-row">';
+                    htmlContent += `<div class="data-label">${riga.identificativo || riga.specifica || ''}</div>`;
+                    htmlContent += `<div class="data-value">${riga.espressione || ''}</div>`;
+                    htmlContent += `<div class="data-result">${riga.mq || '0.00'} mq.</div>`;
+                    htmlContent += '</div>';
+                });
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE SUPERFICIE INTERVENTO: ${dati.sezione1_SuperficieIntervento.totale || '0.00'} mq`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 2: Superficie Coperta Massima Consentita
+            if (dati.sezione2_SuperficieCoperta) {
+                console.log('Aggiungendo sezione 2...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE SUPERFICIE COPERTA MASSIMA CONSENTITA</div>';
+                
+                htmlContent += '<div class="formula-row">';
+                htmlContent += '<div class="formula-left">';
+                htmlContent += `<span class="formula-part"><strong>Superficie intervento</strong> ${dati.sezione2_SuperficieCoperta.superficieIntervento || '0.00'} mq.</span>`;
+                htmlContent += '<span class="formula-op">×</span>';
+                htmlContent += `<span class="formula-part"><strong>Coefficiente</strong> ${dati.sezione2_SuperficieCoperta.coeffMoltiplicatore || '0.00'}</span>`;
+                htmlContent += '<span class="formula-op">=</span>';
+                htmlContent += '</div>';
+                htmlContent += `<div class="data-result">${dati.sezione2_SuperficieCoperta.superficieCoperta || '0.00'} mq.</div>`;
+                htmlContent += '</div>';
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE SUPERFICIE COPERTA MASSIMA CONSENTITA: ${dati.sezione2_SuperficieCoperta.superficieCoperta || '0.00'} mq`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 3: Volumetria Massima Realizzabile
+            if (dati.sezione3_VolumetriaMassima) {
+                console.log('Aggiungendo sezione 3...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE VOLUMETRIA MASSIMA REALIZZABILE</div>';
+                
+                htmlContent += '<div class="formula-row">';
+                htmlContent += '<div class="formula-left">';
+                htmlContent += `<span class="formula-part"><strong>Superficie intervento</strong> ${dati.sezione3_VolumetriaMassima.superficieVolumetria || '0.00'} mq.</span>`;
+                htmlContent += '<span class="formula-op">×</span>';
+                htmlContent += `<span class="formula-part"><strong>Indice volumetrico</strong> ${dati.sezione3_VolumetriaMassima.indiceVolumetrico || '0.00'}</span>`;
+                htmlContent += '<span class="formula-op">=</span>';
+                htmlContent += '</div>';
+                htmlContent += `<div class="data-result">${dati.sezione3_VolumetriaMassima.volumetriaCalcolata || '0.00'} mc.</div>`;
+                htmlContent += '</div>';
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE VOLUMETRIA MASSIMA REALIZZABILE: ${dati.sezione3_VolumetriaMassima.volumetriaCalcolata || '0.00'} mc`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 4: Superficie Drenante Necessaria
+            if (dati.sezione4_SuperficieDrenante) {
+                console.log('Aggiungendo sezione 4...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE SUPERFICIE DRENANTE NECESSARIA</div>';
+                
+                htmlContent += '<div class="formula-row">';
+                htmlContent += '<div class="formula-left">';
+                htmlContent += `<span class="formula-part"><strong>Superficie intervento</strong> ${dati.sezione4_SuperficieDrenante.superficieIntervento || '0.00'} mq.</span>`;
+                htmlContent += '<span class="formula-op">×</span>';
+                htmlContent += `<span class="formula-part"><strong>% Drenante</strong> ${dati.sezione4_SuperficieDrenante.percDrenante || '0.00'}%</span>`;
+                htmlContent += '<span class="formula-op">=</span>';
+                htmlContent += '</div>';
+                htmlContent += `<div class="data-result">${dati.sezione4_SuperficieDrenante.superficieDrenanteMinima || '0.00'} mq.</div>`;
+                htmlContent += '</div>';
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE SUPERFICIE DRENANTE NECESSARIA: ${dati.sezione4_SuperficieDrenante.superficieDrenanteMinima || '0.00'} mq`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+        
+        // Sezione 5: Superficie Coperta in Progetto
+            if (dati.sezione5_SuperficieProgetto && dati.sezione5_SuperficieProgetto.unita && dati.sezione5_SuperficieProgetto.unita.length > 0) {
+                console.log('Aggiungendo sezione 5...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE SUPERFICIE COPERTA IN PROGETTO</div>';
+                
+                dati.sezione5_SuperficieProgetto.unita.forEach((unita, unitaIndex) => {
+                    // Header dell'unità e delle colonne sulla stessa riga
+                    htmlContent += `<div class="data-row" style="background: #f8f8f8; font-weight: bold;">`;
+                    htmlContent += `<div class="data-label">${unita.nome || ''}</div>`;
+                    htmlContent += '<div class="data-value">Specifica superficie</div>';
+                    htmlContent += '<div class="data-result">Superficie</div>';
+                    htmlContent += '</div>';
+                    
+                    // Righe dei dati
+                    unita.righe.forEach((riga, rigaIndex) => {
+                        htmlContent += '<div class="data-row">';
+                        htmlContent += `<div class="data-label">${riga.numero}. ${riga.identificativo || riga.specifica || ''}</div>`;
+                        htmlContent += `<div class="data-value">${riga.specifica || ''}</div>`;
+                        htmlContent += `<div class="data-result">${riga.mq || '0.00'} mq.</div>`;
+                        htmlContent += '</div>';
+                    });
+                    
+                    // Totale dell'unità
+                    htmlContent += '<div class="data-row" style="background: #e8e8e8; font-weight: bold;">';
+                    htmlContent += '<div class="data-label">TOTALE UNITÀ</div>';
+                    htmlContent += '<div class="data-value"></div>';
+                    htmlContent += `<div class="data-result">${unita.totale || '0.00'} mq.</div>`;
+                    htmlContent += '</div>';
+                    htmlContent += '<div style="margin: 8pt 0;"></div>';
+                });
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE SUPERFICIE COPERTA IN PROGETTO: ${dati.sezione5_SuperficieProgetto.totaleGeneraleMq || '0.00'} mq`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 6: Determinazione Superficie Lorda
+            if (dati.sezione6_DeterminazioneSL && dati.sezione6_DeterminazioneSL.unita && dati.sezione6_DeterminazioneSL.unita.length > 0) {
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE SUPERFICIE LORDA</div>';
+                
+                dati.sezione6_DeterminazioneSL.unita.forEach((unita, unitaIndex) => {
+                    // Header dell'unità e delle colonne sulla stessa riga
+                    htmlContent += `<div class="data-row" style="background: #f8f8f8; font-weight: bold;">`;
+                    htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${unita.nome || ''}</div>`;
+                    htmlContent += '<div class="data-value" style="flex: 0 0 30%;">Specifica</div>';
+                    htmlContent += '<div class="data-result" style="flex: 0 0 18%;">Superficie</div>';
+                    htmlContent += '<div class="data-result" style="flex: 0 0 18%;">Altezza</div>';
+                    htmlContent += '<div class="data-result" style="flex: 0 0 19%;">Volume</div>';
+                    htmlContent += '</div>';
+                    
+                    // Righe dei dati
+                    unita.piani.forEach((piano, pianoIndex) => {
+                        // Header del piano
+                        htmlContent += `<div class="data-row" style="background: #f0f0f0; font-weight: bold; padding-left: 20px;">`;
+                        htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${piano.nome || ''}</div>`;
+                        htmlContent += '<div class="data-value" style="flex: 0 0 30%;"></div>';
+                        htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                        htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                        htmlContent += '<div class="data-result" style="flex: 0 0 19%;"></div>';
+                        htmlContent += '</div>';
+                        
+                        // Righe del piano
+                        piano.righe.forEach((riga, rigaIndex) => {
+                            htmlContent += '<div class="data-row" style="padding-left: 40px;">';
+                            htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${riga.numero}. ${riga.specifica || ''}</div>`;
+                            htmlContent += `<div class="data-value" style="flex: 0 0 30%;">${riga.espressione || ''}</div>`;
+                            htmlContent += `<div class="data-result" style="flex: 0 0 18%;">${riga.superficie || '0.00'} mq.</div>`;
+                            htmlContent += `<div class="data-result" style="flex: 0 0 18%;">${riga.altezza || '0.00'} m</div>`;
+                            htmlContent += `<div class="data-result" style="flex: 0 0 19%;">${riga.volume || '0.00'} mc.</div>`;
+                            htmlContent += '</div>';
+                        });
+                        
+                        // Totale del piano
+                        htmlContent += '<div class="data-row" style="background: #e8e8e8; font-weight: bold; padding-left: 20px;">';
+                        htmlContent += '<div class="data-label" style="flex: 0 0 15%;">TOTALE PIANO</div>';
+                        htmlContent += '<div class="data-value" style="flex: 0 0 30%;"></div>';
+                        htmlContent += `<div class="data-result" style="flex: 0 0 18%;">${piano.totale.superficie || '0.00'} mq.</div>`;
+                        htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                        htmlContent += `<div class="data-result" style="flex: 0 0 19%;">${piano.totale.volume || '0.00'} mc.</div>`;
+                        htmlContent += '</div>';
+                    });
+                    
+                    // Totale dell'unità
+                    htmlContent += '<div class="data-row" style="background: #d8d8d8; font-weight: bold;">';
+                    htmlContent += '<div class="data-label" style="flex: 0 0 15%;">TOTALE UNITÀ</div>';
+                    htmlContent += '<div class="data-value" style="flex: 0 0 30%;"></div>';
+                    htmlContent += `<div class="data-result" style="flex: 0 0 18%;">${unita.totale.superficie || '0.00'} mq.</div>`;
+                    htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                    htmlContent += `<div class="data-result" style="flex: 0 0 19%;">${unita.totale.volume || '0.00'} mc.</div>`;
+                    htmlContent += '</div>';
+                    htmlContent += '<div style="margin: 8pt 0;"></div>';
+                });
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE SUPERFICIE LORDA: ${dati.sezione6_DeterminazioneSL.totaleGenerale.superficie || '0.00'} mq | `;
+                htmlContent += `VOLUME: ${dati.sezione6_DeterminazioneSL.totaleGenerale.volume || '0.00'} mc`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 7: Volume Urbanistico
+            if (dati.sezione7_VolumeUrbanistico) {
+                console.log('Aggiungendo sezione 7...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE VOLUME URBANISTICO</div>';
+                
+                htmlContent += '<div class="formula-row">';
+                htmlContent += '<div class="formula-left">';
+                htmlContent += `<span class="formula-part"><strong>Superficie S.L.</strong> ${dati.sezione7_VolumeUrbanistico.superficieSL || '0.00'} mq.</span>`;
+                htmlContent += '<span class="formula-op">×</span>';
+                htmlContent += `<span class="formula-part"><strong>h virtuale</strong> ${dati.sezione7_VolumeUrbanistico.altezzaVirtuale || '0.00'} m</span>`;
+                htmlContent += '<span class="formula-op">=</span>';
+                htmlContent += '</div>';
+                htmlContent += `<div class="data-result">${dati.sezione7_VolumeUrbanistico.volumeUrbanistico || '0.00'} mc.</div>`;
+                htmlContent += '</div>';
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE VOLUME URBANISTICO: ${dati.sezione7_VolumeUrbanistico.volumeUrbanistico || '0.00'} mc`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 8: Parcheggio Richiesto da Volume Urbanistico
+            if (dati.sezione8_ParcheggioRichiesto) {
+                console.log('Aggiungendo sezione 8...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE PARCHEGGIO RICHIESTO DA VOLUME URBANISTICO</div>';
+                
+                htmlContent += '<div class="formula-row">';
+                htmlContent += '<div class="formula-left">';
+                htmlContent += `<span class="formula-part"><strong>Volume Urbanistico</strong> ${dati.sezione8_ParcheggioRichiesto.volumeUrbanistico || '0.00'} mc.</span>`;
+                htmlContent += '<span class="formula-op">×</span>';
+                htmlContent += `<span class="formula-part"><strong>Coefficiente</strong> ${dati.sezione8_ParcheggioRichiesto.coeffParcheggio || '0.00'}</span>`;
+                htmlContent += '<span class="formula-op">=</span>';
+                htmlContent += '</div>';
+                htmlContent += `<div class="data-result">${dati.sezione8_ParcheggioRichiesto.parcheggioRichiesto || '0.00'} mq.</div>`;
+                htmlContent += '</div>';
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE PARCHEGGIO RICHIESTO: ${dati.sezione8_ParcheggioRichiesto.parcheggioRichiesto || '0.00'} mq`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 9: Determinazione Superficie Accessoria S.A.
+            if (dati.sezione9_SuperficieAccessoria && dati.sezione9_SuperficieAccessoria.unita && dati.sezione9_SuperficieAccessoria.unita.length > 0) {
+                console.log('Aggiungendo sezione 9...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE SUPERFICIE ACCESSORIA S.A.</div>';
+                
+                dati.sezione9_SuperficieAccessoria.unita.forEach((unita, unitaIndex) => {
+                    // Header dell'unità e delle colonne sulla stessa riga
+                    htmlContent += `<div class="data-row" style="background: #f8f8f8; font-weight: bold;">`;
+                    htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${unita.nome || ''}</div>`;
+                    htmlContent += '<div class="data-value" style="flex: 0 0 30%;">Specifica</div>';
+                    htmlContent += '<div class="data-result" style="flex: 0 0 18%;">Superficie</div>';
+                    htmlContent += '<div class="data-result" style="flex: 0 0 18%;">Altezza</div>';
+                    htmlContent += '<div class="data-result" style="flex: 0 0 19%;">Volume</div>';
+                    htmlContent += '</div>';
+                    
+                    // Righe dei dati
+                    unita.piani.forEach((piano, pianoIndex) => {
+                        // Header del piano
+                        htmlContent += `<div class="data-row" style="background: #f0f0f0; font-weight: bold; padding-left: 20px;">`;
+                        htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${piano.nome || ''}</div>`;
+                        htmlContent += '<div class="data-value" style="flex: 0 0 30%;"></div>';
+                        htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                        htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                        htmlContent += '<div class="data-result" style="flex: 0 0 19%;"></div>';
+                        htmlContent += '</div>';
+                        
+                        // Categorie del piano
+                        piano.categorie.forEach((categoria, categoriaIndex) => {
+                            // Header della categoria
+                            htmlContent += `<div class="data-row" style="background: #e8e8e8; font-weight: bold; padding-left: 40px;">`;
+                            htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${categoria.nome || ''}</div>`;
+                            htmlContent += '<div class="data-value" style="flex: 0 0 30%;"></div>';
+                            htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                            htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                            htmlContent += '<div class="data-result" style="flex: 0 0 19%;"></div>';
+                            htmlContent += '</div>';
+                            
+                            // Righe della categoria
+                            categoria.righe.forEach((riga, rigaIndex) => {
+                                htmlContent += '<div class="data-row" style="padding-left: 60px;">';
+                                htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${riga.numero}. ${riga.identificativo || ''}</div>`;
+                                htmlContent += `<div class="data-value" style="flex: 0 0 30%;">${riga.specifica || ''}</div>`;
+                                htmlContent += `<div class="data-result" style="flex: 0 0 18%;">${riga.superficie || '0.00'} mq.</div>`;
+                                htmlContent += `<div class="data-result" style="flex: 0 0 18%;">${riga.altezza || '0.00'} m</div>`;
+                                htmlContent += `<div class="data-result" style="flex: 0 0 19%;">${riga.volume || '0.00'} mc.</div>`;
+                                htmlContent += '</div>';
+                            });
+                            
+                            // Totale della categoria
+                            htmlContent += '<div class="data-row" style="background: #d8d8d8; font-weight: bold; padding-left: 40px;">';
+                            htmlContent += '<div class="data-label" style="flex: 0 0 15%;">TOTALE CATEGORIA</div>';
+                            htmlContent += '<div class="data-value" style="flex: 0 0 30%;"></div>';
+                            htmlContent += `<div class="data-result" style="flex: 0 0 18%;">${categoria.totale.superficie || '0.00'} mq.</div>`;
+                            htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                            htmlContent += `<div class="data-result" style="flex: 0 0 19%;">${categoria.totale.volume || '0.00'} mc.</div>`;
+                            htmlContent += '</div>';
+                        });
+                        
+                        // Totale del piano
+                        htmlContent += '<div class="data-row" style="background: #c8c8c8; font-weight: bold; padding-left: 20px;">';
+                        htmlContent += '<div class="data-label" style="flex: 0 0 15%;">TOTALE PIANO</div>';
+                        htmlContent += '<div class="data-value" style="flex: 0 0 30%;"></div>';
+                        htmlContent += `<div class="data-result" style="flex: 0 0 18%;">${piano.totale.superficie || '0.00'} mq.</div>`;
+                        htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                        htmlContent += `<div class="data-result" style="flex: 0 0 19%;">${piano.totale.volume || '0.00'} mc.</div>`;
+                        htmlContent += '</div>';
+                    });
+                    
+                    // Totale dell'unità
+                    htmlContent += '<div class="data-row" style="background: #b8b8b8; font-weight: bold;">';
+                    htmlContent += '<div class="data-label" style="flex: 0 0 15%;">TOTALE UNITÀ</div>';
+                    htmlContent += '<div class="data-value" style="flex: 0 0 30%;"></div>';
+                    htmlContent += `<div class="data-result" style="flex: 0 0 18%;">${unita.totale.superficie || '0.00'} mq.</div>`;
+                    htmlContent += '<div class="data-result" style="flex: 0 0 18%;"></div>';
+                    htmlContent += `<div class="data-result" style="flex: 0 0 19%;">${unita.totale.volume || '0.00'} mc.</div>`;
+                    htmlContent += '</div>';
+                    htmlContent += '<div style="margin: 8pt 0;"></div>';
+                });
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE SUPERFICIE ACCESSORIA S.A.: ${dati.sezione9_SuperficieAccessoria.totaleGenerale.superficie || '0.00'} mq | `;
+                htmlContent += `VOLUME: ${dati.sezione9_SuperficieAccessoria.totaleGenerale.volume || '0.00'} mc`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 10: Volumetria Complessiva
+            if (dati.sezione10_VolumetriaComplessiva) {
+                console.log('Aggiungendo sezione 10...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE VOLUMETRIA COMPLESSIVA</div>';
+                
+                htmlContent += '<div class="data-row">';
+                htmlContent += '<div class="data-label">Volume S.L.</div>';
+                htmlContent += `<div class="data-value">${dati.sezione10_VolumetriaComplessiva.volumeSL || '0.00'} mc.</div>`;
+                htmlContent += '<div class="data-result">+</div>';
+                htmlContent += '</div>';
+                
+                htmlContent += '<div class="data-row">';
+                htmlContent += '<div class="data-label">Volume S.A.</div>';
+                htmlContent += `<div class="data-value">${dati.sezione10_VolumetriaComplessiva.volumeSA || '0.00'} mc.</div>`;
+                htmlContent += '<div class="data-result">=</div>';
+                htmlContent += '</div>';
+                
+                htmlContent += '<div class="data-row">';
+                htmlContent += '<div class="data-label">Volume Complessivo</div>';
+                htmlContent += `<div class="data-value">${dati.sezione10_VolumetriaComplessiva.volumeComplessivo || '0.00'} mc.</div>`;
+                htmlContent += '<div class="data-result"></div>';
+                htmlContent += '</div>';
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE VOLUMETRIA COMPLESSIVA: ${dati.sezione10_VolumetriaComplessiva.volumeComplessivo || '0.00'} mc`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 11: Determinazione Superficie a Parcheggio in Progetto
+            if (dati.sezione11_SuperficieParcheggio && dati.sezione11_SuperficieParcheggio.unita && dati.sezione11_SuperficieParcheggio.unita.length > 0) {
+                console.log('Aggiungendo sezione 11...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE SUPERFICIE A PARCHEGGIO IN PROGETTO</div>';
+                
+                dati.sezione11_SuperficieParcheggio.unita.forEach((unita, unitaIndex) => {
+                    // Header dell'unità e delle colonne sulla stessa riga
+                    htmlContent += `<div class="data-row" style="background: #f8f8f8; font-weight: bold;">`;
+                    htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${unita.nome || ''}</div>`;
+                    htmlContent += '<div class="data-value" style="flex: 0 0 50%;">Specifica superficie</div>';
+                    htmlContent += '<div class="data-result" style="flex: 0 0 35%;">Superficie</div>';
+                    htmlContent += '</div>';
+                    
+                    // Righe dei dati
+                    unita.piani.forEach((piano, pianoIndex) => {
+                        // Header del piano
+                        htmlContent += `<div class="data-row" style="background: #f0f0f0; font-weight: bold; padding-left: 20px;">`;
+                        htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${piano.nome || ''}</div>`;
+                        htmlContent += '<div class="data-value" style="flex: 0 0 50%;"></div>';
+                        htmlContent += '<div class="data-result" style="flex: 0 0 35%;"></div>';
+                        htmlContent += '</div>';
+                        
+                        // Righe del piano
+                        piano.righe.forEach((riga, rigaIndex) => {
+                            htmlContent += '<div class="data-row" style="padding-left: 40px;">';
+                            htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${riga.numero}. ${riga.specifica || ''}</div>`;
+                            htmlContent += `<div class="data-value" style="flex: 0 0 50%;">${riga.espressione || ''}</div>`;
+                            htmlContent += `<div class="data-result" style="flex: 0 0 35%;">${riga.superficie || '0.00'} mq.</div>`;
+                            htmlContent += '</div>';
+                        });
+                        
+                        // Totale del piano (solo superficie)
+                        htmlContent += '<div class="data-row" style="background: #e8e8e8; font-weight: bold; padding-left: 20px;">';
+                        htmlContent += '<div class="data-label" style="flex: 0 0 15%;">TOTALE PIANO</div>';
+                        htmlContent += '<div class="data-value" style="flex: 0 0 50%;"></div>';
+                        htmlContent += `<div class="data-result" style="flex: 0 0 35%;">${piano.totale.superficie || '0.00'} mq.</div>`;
+                        htmlContent += '</div>';
+                    });
+                    
+                    // Totale dell'unità (solo superficie)
+                    htmlContent += '<div class="data-row" style="background: #d8d8d8; font-weight: bold;">';
+                    htmlContent += '<div class="data-label" style="flex: 0 0 15%;">TOTALE UNITÀ</div>';
+                    htmlContent += '<div class="data-value" style="flex: 0 0 50%;"></div>';
+                    htmlContent += `<div class="data-result" style="flex: 0 0 35%;">${unita.totale.superficie || '0.00'} mq.</div>`;
+                    htmlContent += '</div>';
+                    htmlContent += '<div style="margin: 8pt 0;"></div>';
+                });
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE SUPERFICIE A PARCHEGGIO: ${dati.sezione11_SuperficieParcheggio.totaleGenerale.superficie || '0.00'} mq`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 12: Determinazione Superficie Drenante in Progetto
+            if (dati.sezione12_SuperficieDrenante && dati.sezione12_SuperficieDrenante.unita && dati.sezione12_SuperficieDrenante.unita.length > 0) {
+                console.log('Aggiungendo sezione 12...');
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">DETERMINAZIONE SUPERFICIE DRENANTE IN PROGETTO</div>';
+                
+                dati.sezione12_SuperficieDrenante.unita.forEach((unita, unitaIndex) => {
+                    // Header dell'unità e delle colonne sulla stessa riga
+                    htmlContent += `<div class="data-row" style="background: #f8f8f8; font-weight: bold;">`;
+                    htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${unita.nome || ''}</div>`;
+                    htmlContent += '<div class="data-value" style="flex: 0 0 50%;">Specifica superficie</div>';
+                    htmlContent += '<div class="data-result" style="flex: 0 0 35%;">Superficie</div>';
+                    htmlContent += '</div>';
+                    
+                    // Righe dei dati
+                    unita.piani.forEach((piano, pianoIndex) => {
+                        // Header del piano
+                        htmlContent += `<div class="data-row" style="background: #f0f0f0; font-weight: bold; padding-left: 20px;">`;
+                        htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${piano.nome || ''}</div>`;
+                        htmlContent += '<div class="data-value" style="flex: 0 0 50%;"></div>';
+                        htmlContent += '<div class="data-result" style="flex: 0 0 35%;"></div>';
+                        htmlContent += '</div>';
+                        
+                        // Righe del piano
+                        piano.righe.forEach((riga, rigaIndex) => {
+                            htmlContent += '<div class="data-row" style="padding-left: 40px;">';
+                            htmlContent += `<div class="data-label" style="flex: 0 0 15%;">${riga.numero}. ${riga.specifica || ''}</div>`;
+                            htmlContent += `<div class="data-value" style="flex: 0 0 50%;">${riga.espressione || ''}</div>`;
+                            htmlContent += `<div class="data-result" style="flex: 0 0 35%;">${riga.superficie || '0.00'} mq.</div>`;
+                            htmlContent += '</div>';
+                        });
+                        
+                        // Totale del piano (solo superficie)
+                        htmlContent += '<div class="data-row" style="background: #e8e8e8; font-weight: bold; padding-left: 20px;">';
+                        htmlContent += '<div class="data-label" style="flex: 0 0 15%;">TOTALE PIANO</div>';
+                        htmlContent += '<div class="data-value" style="flex: 0 0 50%;"></div>';
+                        htmlContent += `<div class="data-result" style="flex: 0 0 35%;">${piano.totale.superficie || '0.00'} mq.</div>`;
+                        htmlContent += '</div>';
+                    });
+                    
+                    // Totale dell'unità (solo superficie)
+                    htmlContent += '<div class="data-row" style="background: #d8d8d8; font-weight: bold;">';
+                    htmlContent += '<div class="data-label" style="flex: 0 0 15%;">TOTALE UNITÀ</div>';
+                    htmlContent += '<div class="data-value" style="flex: 0 0 50%;"></div>';
+                    htmlContent += `<div class="data-result" style="flex: 0 0 35%;">${unita.totale.superficie || '0.00'} mq.</div>`;
+                    htmlContent += '</div>';
+                    htmlContent += '<div style="margin: 8pt 0;"></div>';
+                });
+                
+                htmlContent += '<div class="total">';
+                htmlContent += `TOTALE SUPERFICIE DRENANTE: ${dati.sezione12_SuperficieDrenante.totaleGenerale.superficie || '0.00'} mq`;
+                htmlContent += '</div>';
+                htmlContent += '</div>';
+            }
+            
+            // Sezione 13: Verifiche Superfici e Volumi
+            if (dati.sezione13_VerificheFinali) {
+                console.log('Aggiungendo sezione 13...');
+                const v = dati.sezione13_VerificheFinali;
+                htmlContent += '<div class="section">';
+                htmlContent += '<div class="section-title">VERIFICHE FINALI</div>';
+                htmlContent += '<table class="verifica-table"><thead><tr>';
+                htmlContent += '<th>Verifica</th>';
+                htmlContent += '<th>Limite / Richiesta</th>';
+                htmlContent += '<th>Progetto</th>';
+                htmlContent += '<th>Stato</th>';
+                htmlContent += '</tr></thead><tbody>';
+
+                if (v.verificaSuperficieCoperta) {
+                    htmlContent += '<tr>';
+                    htmlContent += '<td class="verifica-nome">SUPERFICIE COPERTA</td>';
+                    htmlContent += `<td class="verifica-val">${v.verificaSuperficieCoperta.superficieMassima || '0.00'}<span class="verifica-unit">mq</span></td>`;
+                    htmlContent += `<td class="verifica-val">${v.verificaSuperficieCoperta.superficieProgetto || '0.00'}<span class="verifica-unit">mq</span></td>`;
+                    htmlContent += `<td class="verifica-stato">${v.verificaSuperficieCoperta.stato || 'N/A'}</td>`;
+                    htmlContent += '</tr>';
+                }
+                if (v.verificaVolumetria) {
+                    htmlContent += '<tr>';
+                    htmlContent += '<td class="verifica-nome">SUPERFICIE LORDA</td>';
+                    htmlContent += `<td class="verifica-val">${v.verificaVolumetria.volumetriaMassima || '0.00'}<span class="verifica-unit">mq</span></td>`;
+                    htmlContent += `<td class="verifica-val">${v.verificaVolumetria.volumetriaProgetto || '0.00'}<span class="verifica-unit">mq</span></td>`;
+                    htmlContent += `<td class="verifica-stato">${v.verificaVolumetria.stato || 'N/A'}</td>`;
+                    htmlContent += '</tr>';
+                }
+                if (v.verificaParcheggio) {
+                    htmlContent += '<tr>';
+                    htmlContent += '<td class="verifica-nome">PARCHEGGIO</td>';
+                    htmlContent += `<td class="verifica-val">${v.verificaParcheggio.parcheggioMinimo || '0.00'}<span class="verifica-unit">mq</span></td>`;
+                    htmlContent += `<td class="verifica-val">${v.verificaParcheggio.parcheggioProgetto || '0.00'}<span class="verifica-unit">mq</span></td>`;
+                    htmlContent += `<td class="verifica-stato">${v.verificaParcheggio.stato || 'N/A'}</td>`;
+                    htmlContent += '</tr>';
+                }
+                if (v.verificaDrenante) {
+                    htmlContent += '<tr>';
+                    htmlContent += '<td class="verifica-nome">DRENANTE</td>';
+                    htmlContent += `<td class="verifica-val">${v.verificaDrenante.drenanteMinimo || '0.00'}<span class="verifica-unit">mq</span></td>`;
+                    htmlContent += `<td class="verifica-val">${v.verificaDrenante.drenanteProgetto || '0.00'}<span class="verifica-unit">mq</span></td>`;
+                    htmlContent += `<td class="verifica-stato">${v.verificaDrenante.stato || 'N/A'}</td>`;
+                    htmlContent += '</tr>';
+                }
+
+                htmlContent += '</tbody></table></div>';
+            }
+            
+            // Se non ci sono dati, mostra un messaggio
+            if (htmlContent === '') {
+                console.log('Nessun contenuto generato');
+                mostraMessaggioNessunDato();
+                return;
+            }
+            
+            console.log('Inserendo contenuto:', htmlContent);
+            contenuto.innerHTML = htmlContent;
+            console.log('Contenuto inserito con successo');
+        }
+        
+        function mostraMessaggioNessunDato() {
+            const contenuto = document.getElementById('contenuto-stampa');
+            contenuto.innerHTML = '<div class="section"><div class="section-title">NESSUN DATO DISPONIBILE</div><div class="data-row"><div class="data-label">Compila almeno una sezione</div><div class="data-value">nel form principale</div><div class="data-result">per vedere i dati</div></div></div>';
+        }
+        
+        function mostraMessaggioErrore() {
+            const contenuto = document.getElementById('contenuto-stampa');
+            contenuto.innerHTML = '<div class="section"><div class="section-title">ERRORE</div><div class="data-row"><div class="data-label">Errore nel caricamento</div><div class="data-value">dei dati</div><div class="data-result">per la stampa</div></div></div>';
+        }
+        
+        // Carica i dati quando la pagina è pronta
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM caricato, avviando caricamento dati...');
+            setTimeout(caricaDatiPDF, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "planilore2025",
+  "version": "1.0.0",
+  "description": "PLANILORE 2025 - Calcolo Planivolumetrico",
+  "main": "index.js",
+  "scripts": {
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:debug": "tauri build --debug",
+    "tauri:build:release": "tauri build --release"
+  },
+  "keywords": [
+    "tauri",
+    "windows",
+    "app",
+    "planilore",
+    "planivolumetrico",
+    "2025"
+  ],
+  "author": "Utente",
+  "license": "MIT",
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.6.3"
+  }
+}

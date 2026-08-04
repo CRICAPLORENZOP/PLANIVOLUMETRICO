@@ -1,0 +1,17 @@
+Windows Registry Editor Version 5.00
+
+; Associazione file .cml con Planilore
+; IMPORTANTE: Modifica il percorso sotto con il percorso reale del tuo PLANILORE2025.exe
+; Esempio: "C:\\Users\\Utente\\AppData\\Local\\Programs\\PLANILORE2025\\PLANILORE2025.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\.cml]
+@="Planilore2025.Cml"
+
+[HKEY_CURRENT_USER\Software\Classes\Planilore2025.Cml]
+@="Computo Planivolumetrico"
+
+[HKEY_CURRENT_USER\Software\Classes\Planilore2025.Cml\DefaultIcon]
+@="C:\\PERCORSO\\ALLA\\TUA\\APP\\PLANILORE2025.exe,0"
+
+[HKEY_CURRENT_USER\Software\Classes\Planilore2025.Cml\shell\open\command]
+@="\"C:\\PERCORSO\\ALLA\\TUA\\APP\\PLANILORE2025.exe\" \"%1\""

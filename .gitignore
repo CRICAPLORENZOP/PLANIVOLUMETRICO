@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build / Rust
+src-tauri/target/
+target/
+dist-installer/
+
+# Logs / OS
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Env / secrets (mai pubblicare chiavi private)
+.env
+.env.*
+*.pem
+*.key
+!*.key.pub
+.tauri/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary
+*.tmp
+*.bak
